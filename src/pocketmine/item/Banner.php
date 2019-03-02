@@ -103,15 +103,17 @@ class Banner extends Item{
 	public function serializeCompoundTag(CompoundTag $tag) : void{
 		parent::serializeCompoundTag($tag);
 
-		$patterns = new ListTag();
-		/** @var BannerPattern $pattern */
-		foreach($this->patterns as $pattern){
-			$patterns->push(CompoundTag::create()
-				->setString(self::TAG_PATTERN_NAME, $pattern->getId())
-				->setInt(self::TAG_PATTERN_COLOR, $pattern->getColor()->getInvertedMagicNumber())
-			);
-		}
+		if(!$this->patterns->isEmpty()){
+			$patterns = new ListTag();
+			/** @var BannerPattern $pattern */
+			foreach($this->patterns as $pattern){
+				$patterns->push(CompoundTag::create()
+					->setString(self::TAG_PATTERN_NAME, $pattern->getId())
+					->setInt(self::TAG_PATTERN_COLOR, $pattern->getColor()->getInvertedMagicNumber())
+				);
+			}
 
-		$tag->setTag(self::TAG_PATTERNS, $patterns);
+			$tag->setTag(self::TAG_PATTERNS, $patterns);
+		}
 	}
 }
