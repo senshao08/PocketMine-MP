@@ -189,4 +189,9 @@ class WritableBook extends Item{
 			$tag->setTag(self::TAG_PAGES, $pages);
 		}
 	}
+
+	public function __clone(){
+		parent::__clone();
+		$this->pages = $this->pages->map(function($e){ return clone $e; });
+	}
 }
