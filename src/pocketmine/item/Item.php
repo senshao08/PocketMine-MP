@@ -156,8 +156,6 @@ class Item implements ItemIds, \JsonSerializable{
 	protected $id;
 	/** @var int */
 	protected $meta;
-	/** @var CompoundTag|null */
-	private $nbt = null;
 	/** @var int */
 	protected $count = 1;
 	/** @var string */
@@ -902,8 +900,6 @@ class Item implements ItemIds, \JsonSerializable{
 	}
 
 	public function __clone(){
-		if($this->nbt !== null){
-			$this->nbt = clone $this->nbt;
-		}
+
 	}
 }
