@@ -60,6 +60,11 @@ class Item implements ItemIds, \JsonSerializable{
 	public const TAG_DISPLAY = "display";
 	public const TAG_BLOCK_ENTITY_TAG = "BlockEntityTag";
 
+	/**
+	 * @deprecated
+	 */
+	public const TAG_PM_PLUGIN_DATA = "PMPluginCustomData";
+
 	public const TAG_DISPLAY_NAME = "Name";
 	public const TAG_DISPLAY_LORE = "Lore";
 
@@ -182,6 +187,12 @@ class Item implements ItemIds, \JsonSerializable{
 	protected $canDestroy;
 
 	/**
+	 * @var CompoundTag
+	 * @deprecated
+	 */
+	protected $pluginNbtData;
+
+	/**
 	 * Constructs a new Item type. This constructor should ONLY be used when constructing a new item TYPE to register
 	 * into the index.
 	 *
@@ -202,6 +213,8 @@ class Item implements ItemIds, \JsonSerializable{
 
 		$this->canPlaceOn = new Set();
 		$this->canDestroy = new Set();
+
+		$this->pluginNbtData = new CompoundTag();
 	}
 
 	/**
@@ -455,8 +468,24 @@ class Item implements ItemIds, \JsonSerializable{
 				$this->canDestroy->add($entry->getValue());
 			}
 		}
+
+		$customData = $tag->getCompoundTag(self::TAG_PM_PLUGIN_DATA);
+		if($customData !== null){
+			$this->pluginNbtData = clone $customData;
+		}elseif($tag->count() > 0){
+			//TODO: scrub parent tag of read tags to avoid garbage in here
+			$this->pluginNbtData = clone $tag;
+		}
 	}
 
+	/**
+	 * TODO: split this into network and disk serializers
+	 *
+	 * @param CompoundTag $tag
+	 *
+	 * @throws \InvalidArgumentException
+	 * @throws \RuntimeException
+	 */
 	public function serializeCompoundTag(CompoundTag $tag) : void{
 		$display = new CompoundTag();
 		if($this->hasCustomName()){
@@ -502,6 +531,10 @@ class Item implements ItemIds, \JsonSerializable{
 			}
 			$tag->setTag("CanDestroy", $canDestroy);
 		}
+
+		if($this->pluginNbtData->count() > 0){
+			$tag->setTag(self::TAG_PM_PLUGIN_DATA, clone $this->pluginNbtData);
+		}
 	}
 
 	/**
@@ -513,6 +546,18 @@ class Item implements ItemIds, \JsonSerializable{
 		$compound = new CompoundTag();
 		$this->serializeCompoundTag($compound);
 		return $compound->count() > 0 ? $compound : null;
+	}
+
+	/**
+	 * Returns a CompoundTag object for plugins to store data in.
+	 *
+	 * @deprecated This will disappear in the future when it is replaced by a proper metadata storage API. Use with
+	 * caution.
+	 *
+	 * @return CompoundTag
+	 */
+	public function getCustomDataTag() : CompoundTag{
+		return $this->pluginNbtData;
 	}
 
 	/**
